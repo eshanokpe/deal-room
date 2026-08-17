@@ -8,16 +8,18 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: { token: string } }
 ) {
   try {
-    const { token } = await params;
+    const { token } = params;
+    console.log("🔍 Incoming token from URL:", token);
 
     if (!token) {
       return new Response("Missing token", { status: 400 });
     }
 
     const tokenHash = hashShareToken(token);
+    console.log("🔍 Searching DB for hash:", tokenHash);
 
     const shareLink = await db.shareLink.findUnique({
       where: { tokenHash },
@@ -25,7 +27,8 @@ export async function GET(
     });
 
     if (!shareLink) {
-      console.error("❌ Share link not found in DB for token:", token);
+      const totalLinksInDb = await db.shareLink.count();
+      console.error(`❌ Link not found! Total links currently in DB: ${totalLinksInDb}`);
       return new Response("Invalid or expired link", { status: 404 });
     }
 
@@ -60,13 +63,10 @@ export async function GET(
       shareLink.document.contentType
     );
 
-    console.log("✅ Redirecting to signed URL successfully.");
     return NextResponse.redirect(signedUrl);
+
   } catch (error) {
     console.error("❌ Error in /d/[token] route:", error);
-    return new Response(
-      "Internal server error while loading document",
-      { status: 500 }
-    );
+    return new Response("Internal server error", { status: 500 });
   }
 }
