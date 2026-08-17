@@ -40,6 +40,31 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
+// NEW: Helper to format the last opened time
+function formatLastOpened(date: Date | null) {
+  if (!date) return "Never opened";
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) return "Opened just now";
+  if (diffMins < 60) return `Opened ${diffMins}m ago`;
+
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Opened ${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `Opened ${diffDays}d ago`;
+
+  return `Opened ${new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date)}`;
+}
+
 function initialsFromEmail(email: string) {
   return email.slice(0, 2).toUpperCase();
 }
@@ -61,6 +86,16 @@ export default async function DashboardPage() {
           shareLinks: true,
         },
       },
+      // NEW: Fetch the most recent view to get the timestamp
+      views: {
+        orderBy: {
+          viewedAt: "desc",
+        },
+        take: 1,
+        select: {
+          viewedAt: true,
+        },
+      },
     },
   });
 
@@ -71,11 +106,16 @@ export default async function DashboardPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#0F3D2E] font-serif text-sm font-semibold text-white">
-              D
+              E
             </div>
-            <span className="font-serif text-lg font-semibold tracking-tight text-[#14181F]">
-              Deal Room
-            </span>
+            <div>
+              <span className="font-serif text-lg font-semibold tracking-tight text-[#14181F]">
+                Eshanokpe Daniel
+              </span>
+              <span className="ml-2 rounded-full bg-[#E7F0EA] px-2 py-0.5 text-[10px] font-medium text-[#0F3D2E]">
+                Assessment
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -147,6 +187,8 @@ export default async function DashboardPage() {
             <ul className="divide-y divide-[#E5E4DF]">
               {documents.map((document) => {
                 const { dot, pill } = statusStyles(document.status);
+                // Get the most recent view timestamp
+                const lastViewedAt = document.views[0]?.viewedAt || null;
 
                 return (
                   <li
@@ -181,7 +223,7 @@ export default async function DashboardPage() {
                           {document.originalFileName}
                         </p>
                         <p className="font-mono text-xs text-[#8A9099]">
-                          {formatDate(document.createdAt)}
+                          Uploaded {formatDate(document.createdAt)}
                         </p>
                       </div>
                     </div>
@@ -193,8 +235,14 @@ export default async function DashboardPage() {
 
                       <div className="flex flex-col items-end gap-1.5">
                         <span className="font-mono text-xs text-[#5B6572]">
-                          {document._count.views} views
+                          {document._count.views} {document._count.views === 1 ? "view" : "views"}
                         </span>
+                        
+                        {/* NEW: Display the exact time it was last opened */}
+                        <span className="text-[11px] font-medium text-[#8A9099]">
+                          {formatLastOpened(lastViewedAt)}
+                        </span>
+
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${pill}`}
                         >
