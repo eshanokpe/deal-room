@@ -15,3 +15,7 @@ rm -rf .next
 
 # 3. Start the server fresh
 npm run dev
+
+npx prisma db push
+
+npm run db:seed
