@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getDbUser();
@@ -17,7 +17,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    // Next.js 15 requires awaiting params
+    const { id } = await params;
 
     // Find the document and verify ownership
     const document = await db.document.findFirst({

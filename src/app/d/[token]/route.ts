@@ -6,12 +6,14 @@ import { getViewUrl } from "@/lib/s3";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// NEXT.JS 15 FIX: params is now a Promise
 export async function GET(
   request: Request,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { token } = params;
+    // NEXT.JS 15 FIX: await the params
+    const { token } = await params;
     console.log("🔍 Incoming token from URL:", token);
 
     if (!token) {
