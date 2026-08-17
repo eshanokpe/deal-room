@@ -7,7 +7,7 @@ export function ShareLinkButton({ documentId }: { documentId: string }) {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+ 
   async function handleGenerate() {
     setLoading(true);
     setError(null);

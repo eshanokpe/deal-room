@@ -17,8 +17,9 @@ function getBucket() {
 }
 
 export const s3 = new S3Client({
-  region: process.env.S3_REGION ?? "auto",
-  endpoint: process.env.S3_ENDPOINT || undefined,
+  region: "auto",
+  endpoint: process.env.S3_ENDPOINT,
+  forcePathStyle: true, // This is critical for R2
   credentials: {
     accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "",
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "",
@@ -76,4 +77,4 @@ export async function getViewUrl(
   return getSignedUrl(s3, command, {
     expiresIn: 60 * 5,
   });
-}
+} 
