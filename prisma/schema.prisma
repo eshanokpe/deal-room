@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStatus {
+  UPLOADING
+  READY
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents Document[]
+}
+
+model Document {
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  originalFileName String
+  fileKey          String
+  contentType      String
+  sizeBytes        Int
+  status           DocumentStatus @default(UPLOADING)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  shareLinks ShareLink[]
+  views      DocumentView[]
+
+  @@index([userId])
+}
+
+model ShareLink {
+  id         String    @id @default(cuid())
+  documentId String
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  tokenLast4 String
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+
+  views DocumentView[]
+
+  @@index([documentId])
+}
+
+model DocumentView {
+  id            String   @id @default(cuid())
+  documentId    String
+  shareLinkId   String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  shareLink     ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+  viewedAt      DateTime @default(now())
+  ipAddressHash String?
+  userAgent     String?
+  referrer      String?
+
+  @@index([documentId])
+  @@index([shareLinkId])
+}
