@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { UploadForm } from "@/components/upload-form";
 import { LogoutButton } from "@/components/logout-button";
 import { ShareLinkButton } from "@/components/share-link-button";
+import { DeleteButton } from "@/components/delete-button"; // NEW IMPORT
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,6 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-// NEW: Helper to format the last opened time
 function formatLastOpened(date: Date | null) {
   if (!date) return "Never opened";
 
@@ -86,7 +86,6 @@ export default async function DashboardPage() {
           shareLinks: true,
         },
       },
-      // NEW: Fetch the most recent view to get the timestamp
       views: {
         orderBy: {
           viewedAt: "desc",
@@ -187,7 +186,6 @@ export default async function DashboardPage() {
             <ul className="divide-y divide-[#E5E4DF]">
               {documents.map((document) => {
                 const { dot, pill } = statusStyles(document.status);
-                // Get the most recent view timestamp
                 const lastViewedAt = document.views[0]?.viewedAt || null;
 
                 return (
@@ -213,12 +211,16 @@ export default async function DashboardPage() {
                       </div>
 
                       <div className="space-y-0.5">
-                        <Link
+                        {/* <Link
                           href={`/documents/${document.id}`}
                           className="text-[15px] font-medium text-[#14181F] hover:text-[#0F3D2E] hover:underline underline-offset-2"
-                        >
+                        > */}
+                        <p className="text-[15px] font-medium text-[#14181F] hover:text-[#0F3D2E] hover:underline">
                           {document.name}
-                        </Link>
+                          
+                          </p>  
+
+                        {/* </Link> */}
                         <p className="text-sm text-[#8A9099]">
                           {document.originalFileName}
                         </p>
@@ -233,12 +235,14 @@ export default async function DashboardPage() {
                         <ShareLinkButton documentId={document.id} />
                       )}
 
+                      {/* NEW: Delete Button added here */}
+                      <DeleteButton documentId={document.id} />
+
                       <div className="flex flex-col items-end gap-1.5">
                         <span className="font-mono text-xs text-[#5B6572]">
                           {document._count.views} {document._count.views === 1 ? "view" : "views"}
                         </span>
                         
-                        {/* NEW: Display the exact time it was last opened */}
                         <span className="text-[11px] font-medium text-[#8A9099]">
                           {formatLastOpened(lastViewedAt)}
                         </span>
