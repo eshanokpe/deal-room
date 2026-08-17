@@ -201,7 +201,7 @@ export default async function DocumentPage({
                 ))}
               </div>
             )}
-          </div>
+          </div> 
         </div>
       </main>
     </div>

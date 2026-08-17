@@ -71,4 +71,4 @@ export async function GET(
     console.error("❌ Error in /d/[token] route:", error);
     return new Response("Internal server error", { status: 500 });
   }
-}
+} 
