@@ -18,7 +18,14 @@ export function ShareLinkButton({ documentId }: { documentId: string }) {
         method: "POST",
       });
 
-      const data = await response.json();
+      // Safely parse JSON
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Server returned non-JSON: ${text.slice(0, 100)}`);
+      }
 
       if (!response.ok) {
         throw new Error(data.error ?? "Failed to create share link");
@@ -26,6 +33,7 @@ export function ShareLinkButton({ documentId }: { documentId: string }) {
 
       setShareUrl(data.url);
     } catch (err) {
+      console.error("Share link button error:", err);
       setError(err instanceof Error ? err.message : "Failed to create link");
     } finally {
       setLoading(false);
@@ -33,10 +41,7 @@ export function ShareLinkButton({ documentId }: { documentId: string }) {
   }
 
   async function handleCopy() {
-    if (!shareUrl) {
-      return;
-    }
-
+    if (!shareUrl) return;
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
   }
@@ -46,36 +51,35 @@ export function ShareLinkButton({ documentId }: { documentId: string }) {
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="rounded-lg bg-[#0F3D2E] px-4 py-2 text-sm font-medium text-white hover:bg-[#0a2b20] disabled:opacity-60 transition-colors"
       >
         {loading ? "Generating..." : "Generate investor link"}
       </button>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error && <p className="text-sm text-red-600 font-medium">Error: {error}</p>}
 
-      {shareUrl ? (
-        <div className="space-y-2 rounded-lg border p-4">
-          <p className="text-sm text-neutral-600">
-            Share this link with an investor. It will record when the document
-            is opened.
+      {shareUrl && (
+        <div className="space-y-2 rounded-lg border border-[#E5E4DF] bg-[#FAFAF9] p-4 animate-in fade-in">
+          <p className="text-sm text-[#5B6572]">
+            Share this link with an investor. It will record when opened.
           </p>
 
           <div className="flex gap-2">
             <input
               readOnly
               value={shareUrl}
-              className="w-full rounded-lg border px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-[#E5E4DF] bg-white px-3 py-2 text-sm text-[#14181F]"
             />
 
             <button
               onClick={handleCopy}
-              className="rounded-lg border px-4 py-2 text-sm"
+              className="rounded-lg border border-[#E5E4DF] bg-white px-4 py-2 text-sm font-medium text-[#14181F] hover:bg-[#F1F0EC]"
             >
-              {copied ? "Copied" : "Copy"}
+              {copied ? "Copied!" : "Copy"}
             </button>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
